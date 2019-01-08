@@ -165,7 +165,7 @@ SELECT * FROM Shipper;
 
 DROP TABLE IF EXISTS Country CASCADE;
 CREATE TABLE Country(
- ID_Country SERIAL,
+ ID_Country Serial,
  Country VARCHAR(255),
  PRIMARY KEY (ID_Country)
 );
@@ -175,14 +175,14 @@ FROM EmployeesSales;
 
 DROP TABLE IF EXISTS Territory CASCADE;
 CREATE TABLE Territory(
- TerritoryID SERIAL,
+ TerritoryID Integer,
  TerritoryDescription VARCHAR(255),
  ID_Country INTEGER,
  PRIMARY KEY (TerritoryID),
  FOREIGN KEY (ID_Country) REFERENCES Country(ID_Country)
 );
-INSERT INTO Territory (TerritoryDescription, ID_Country)
-SELECT DISTINCT TerritoryDescription, c.ID_Country
+INSERT INTO Territory (TerritoryID, TerritoryDescription, ID_Country)
+SELECT DISTINCT e.TerritoryID, TerritoryDescription, c.ID_Country
 FROM EmployeesSales AS e, Country AS c
 WHERE e.Country = c.Country;
 
@@ -191,20 +191,23 @@ SELECT * FROM Territory;
 
 DROP TABLE IF EXISTS Region CASCADE;
 CREATE TABLE Region(
- RegionID SERIAL,
+ RegionID Integer,
  RegionDescription VARCHAR(255),
  Region VARCHAR(255),
  TerritoryID INTEGER,
  PRIMARY KEY(RegionID),
  FOREIGN KEY (TerritoryID) REFERENCES Territory (TerritoryID)
 );
-INSERT INTO Region (RegionDescription, Region, TerritoryID)
-SELECT DISTINCT e.RegionDescription, e.Region, t.TerritoryID
+INSERT INTO Region (RegionID, RegionDescription, Region, TerritoryID)
+SELECT DISTINCT e.RegionID, e.RegionDescription, e.Region, t.TerritoryID
 FROM EmployeesSales AS e, Territory AS t
-WHERE t.TerritoryDescription = e.TerritoryDescription;
+WHERE t.TerritoryDescription = e.TerritoryDescription AND region IS NOT NULL ;
 
 SELECT * FROM Region;
-SELECT DISTINCT * FROM EmployeesSales;
+SELECT RegionID, RegionDescription, Region, TerritoryID FROM EmployeesSales
+WHERE region IS NOT NULL
+GROUP BY RegionID, RegionDescription, Region
+HAVING TerritoryID;
 
 DROP TABLE IF EXISTS City CASCADE;
 CREATE TABLE City(
@@ -262,11 +265,16 @@ CREATE TABLE Employee(
  FOREIGN KEY (ReportsTo) REFERENCES Employee(EmployeeID),
  FOREIGN KEY (TerritoryID) REFERENCES Territory(TerritoryID)
 );
-INSERT INTO Employee (Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes)
-SELECT es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, a.ID_Address, ReportsTo, t.TerritoryID
-FROM EmployeesSales AS es, Territory AS t, Address AS a;
+INSERT INTO Employee (Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ID_Address, ReportsTo, TerritoryID)
+SELECT DISTINCT es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, a.ID_Address, ReportsTo, t.TerritoryID
+FROM EmployeesSales AS es, Territory AS t, Address AS a, City AS c
+WHERE es.TerritoryID = t.TerritoryID; --AND a.ID_City = c.ID_City AND c.City = es.City;
 
-SELECT * FROM EmployeesSales;
+SELECT * FROM Employee;
+SELECT Address FROM EmployeesSales;
+SELECT Address FROM  CustomersOrders;
+
+
 
 DROP TABLE IF EXISTS Company CASCADE;
 CREATE TABLE Company(
