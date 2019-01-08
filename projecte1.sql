@@ -162,6 +162,7 @@ FROM ProductsOrdered;
 
 SELECT * FROM Shipper;
 
+
 DROP TABLE IF EXISTS Country CASCADE;
 CREATE TABLE Country(
  ID_Country SERIAL,
@@ -232,10 +233,12 @@ CREATE TABLE Address(
  FOREIGN KEY (ID_Region) REFERENCES Region(RegionID),
  FOREIGN KEY (ID_City) REFERENCES City(ID_City)
 );
-INSERT INTO Address (Address, PostalCode)
-SELECT Address, PostalCode
-FROM CustomersOrders;
+INSERT INTO Address (Address, PostalCode, ID_Country, ID_Region, ID_City)
+SELECT DISTINCT co.Address, co.PostalCode, c.ID_Country, r.RegionID, cy.ID_City
+FROM CustomersOrders AS co, Country AS c, Region AS r, City AS cy
+WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region;
 
+SELECT * FROM Address;
 
 DROP TABLE IF EXISTS Employee CASCADE;
 CREATE TABLE Employee(
@@ -260,8 +263,10 @@ CREATE TABLE Employee(
  FOREIGN KEY (TerritoryID) REFERENCES Territory(TerritoryID)
 );
 INSERT INTO Employee (Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes)
-SELECT Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes
-FROM EmployeesSales;
+SELECT es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, a.ID_Address, ReportsTo, t.TerritoryID
+FROM EmployeesSales AS es, Territory AS t, Address AS a;
+
+SELECT * FROM EmployeesSales;
 
 DROP TABLE IF EXISTS Company CASCADE;
 CREATE TABLE Company(
@@ -293,6 +298,8 @@ SELECT DISTINCT SupplierHomePage
 FROM ProductsOrdered;
 
 SELECT * FROM Supplier;
+
+SELECT DISTINCT SupplierHomePage FROM ProductsOrdered;
 
 DROP TABLE IF EXISTS Phone CASCADE;
 CREATE TABLE Phone(
