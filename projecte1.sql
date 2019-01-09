@@ -191,23 +191,17 @@ SELECT * FROM Territory;
 
 DROP TABLE IF EXISTS Region CASCADE;
 CREATE TABLE Region(
- RegionID Integer,
+ RegionID SERIAL,
  RegionDescription VARCHAR(255),
  Region VARCHAR(255),
  TerritoryID INTEGER,
  PRIMARY KEY(RegionID),
  FOREIGN KEY (TerritoryID) REFERENCES Territory (TerritoryID)
 );
-INSERT INTO Region (RegionID, RegionDescription, Region, TerritoryID)
-SELECT DISTINCT e.RegionID, e.RegionDescription, e.Region, t.TerritoryID
+INSERT INTO Region ( RegionDescription, Region, TerritoryID)
+SELECT DISTINCT e.RegionDescription, e.Region, t.TerritoryID
 FROM EmployeesSales AS e, Territory AS t
 WHERE t.TerritoryDescription = e.TerritoryDescription AND region IS NOT NULL ;
-
-SELECT * FROM Region;
-SELECT RegionID, RegionDescription, Region, TerritoryID FROM EmployeesSales
-WHERE region IS NOT NULL
-GROUP BY RegionID, RegionDescription, Region
-HAVING TerritoryID;
 
 DROP TABLE IF EXISTS City CASCADE;
 CREATE TABLE City(
@@ -287,23 +281,33 @@ CREATE TABLE Company(
  PRIMARY KEY(ID_Company),
  FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
 );
-INSERT INTO Company (CompanyName, ContactName, ContactSurname, ContactTitle)
-SELECT CompanyName, split_part(ContactName,' ',1) AS ContactName, split_part(ContactName,' ',2) AS ContactSurname, ContactTitle
-FROM CustomersOrders;
+INSERT INTO Company (CompanyName, ContactName, ContactSurname, ContactTitle, ID_Address)
+SELECT DISTINCT CompanyName, split_part(ContactName,' ',1) AS ContactName, split_part(ContactName,' ',2) AS ContactSurname, ContactTitle, ID_Address
+FROM CustomersOrders AS co, Address AS a
+WHERE co.Address = a.Address;
 
-SELECT * FROM Company;
+INSERT INTO Company (CompanyName, ContactName, ContactSurname, ContactTitle, ID_Address)
+SELECT DISTINCT po.SupplierCompanyName, split_part(SupplierContactName,' ',1) AS ContactName, split_part(SupplierContactName,' ',2) AS ContactSurname, ContactTitle, ID_Address
+FROM ProductsOrdered AS po, Address AS a
+WHERE po.OrderShipAddress = a.Address;
 
+SELECT DISTINCT CompanyName FROM Company;
+SELECT DISTINCT SupplierContactName FROM ProductsOrdered;
+
+SELECT CompanyName, split_part(ContactName,' ',1) AS ContactName, split_part(ContactName,' ',2) AS ContactSurname, ContactTitle, ID_Address
+FROM CustomersOrders AS co, Address AS a;
 
 DROP TABLE IF EXISTS Supplier CASCADE;
 CREATE TABLE Supplier(
- ID_Supplier SERIAL,
+ ID_Supplier Integer,
  SupplierHomePage VARCHAR(255),
  PRIMARY KEY (ID_Supplier),
  FOREIGN KEY (ID_Supplier) REFERENCES Company(ID_Company)
 );
-INSERT INTO Supplier (SupplierHomePage)
-SELECT DISTINCT SupplierHomePage
-FROM ProductsOrdered;
+INSERT INTO Supplier (ID_Supplier, SupplierHomePage)
+SELECT DISTINCT c.ID_Company AS ID_Supplier, SupplierHomePage
+FROM ProductsOrdered AS po, Company AS c
+WHERE c.CompanyName = po.SupplierCompanyName;
 
 SELECT * FROM Supplier;
 
@@ -312,7 +316,8 @@ SELECT DISTINCT SupplierHomePage FROM ProductsOrdered;
 DROP TABLE IF EXISTS Phone CASCADE;
 CREATE TABLE Phone(
  ID_Telefon SERIAL,
- Numero VARCHAR(255);
+ Numero VARCHAR(255),
+ Numero2 VARCHAR(255),
  ID_Shipper INTEGER,
  ID_Supplier INTEGER,
  ID_Customer INTEGER,
@@ -321,9 +326,17 @@ CREATE TABLE Phone(
  FOREIGN KEY (ID_Supplier) REFERENCES Company(ID_Company),
  FOREIGN KEY (ID_Customer) REFERENCES Company(ID_Company)
 );
-INSERT INTO Phone (Numero)
-SELECT Numero
-FROM ;
+INSERT INTO Phone (Numero, Numero2, ID_Customer)
+SELECT DISTINCT Phone AS Numero, Phone2 AS Numero2, c.CompanyName AS ID_Customer
+FROM Company AS c, CustomersOrders AS co
+WHERE c.CompanyName = co.CompanyName;
+
+INSERT INTO Phone (Numero, Numero2, ID_Supplier)
+SELECT DISTINCT SupplierPhone AS Numero, SupplierPhone2 AS Numero2, s.ID_Supplier AS ID_Supplier
+FROM Supplier AS s, ProductsOrdered AS po
+WHERE s.SupplierHomePage = ;
+
+ SELECT * FROM Phone;
 
 DROP TABLE IF EXISTS Order1 CASCADE;
 CREATE TABLE Order1(
