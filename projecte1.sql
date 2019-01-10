@@ -104,9 +104,9 @@
 
 
  --QUERY PER IMPORTAR LES DADES A LES SEVES TAULES RESPECTIVES
- COPY CustomersOrders FROM 'C:\Users\Public\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
- COPY EmployeesSales FROM 'C:\Users\Public\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
- COPY ProductsOrdered FROM 'C:\Users\Public\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
+ COPY CustomersOrders FROM 'C:\Users\Public\BBDD\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
+ COPY EmployeesSales FROM 'C:\Users\Public\BBDD\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
+ COPY ProductsOrdered FROM 'C:\Users\Public\BBDD\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
 
  --QUERY PER ELIMINAR ELS ATRIBUTS REPETITS
  ALTER TABLE EmployeesSales
@@ -175,7 +175,7 @@ FROM EmployeesSales;
 
 DROP TABLE IF EXISTS Territory CASCADE;
 CREATE TABLE Territory(
- TerritoryID Integer,
+ TerritoryID SERIAL,
  TerritoryDescription VARCHAR(255),
  ID_Country INTEGER,
  PRIMARY KEY (TerritoryID),
@@ -253,16 +253,15 @@ CREATE TABLE Employee(
  Notes TEXT,
  ID_Address INTEGER,
  ReportsTo INTEGER,
- TerritoryID INTEGER,
  PRIMARY KEY (EmployeeID),
  FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address),
  FOREIGN KEY (ReportsTo) REFERENCES Employee(EmployeeID),
- FOREIGN KEY (TerritoryID) REFERENCES Territory(TerritoryID)
 );
-INSERT INTO Employee (Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ID_Address, ReportsTo, TerritoryID)
-SELECT DISTINCT es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, a.ID_Address, ReportsTo, t.TerritoryID
+INSERT INTO Employee (Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ID_Address, ReportsTo)
+SELECT DISTINCT es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, a.ID_Address, ReportsTo
 FROM EmployeesSales AS es, Territory AS t, Address AS a, City AS c
-WHERE es.TerritoryID = t.TerritoryID; --AND a.ID_City = c.ID_City AND c.City = es.City;
+
+--WHERE es.TerritoryID = t.TerritoryID; --AND a.ID_City = c.ID_City AND c.City = es.City;
 
 SELECT * FROM Employee;
 SELECT Address FROM EmployeesSales;
@@ -341,31 +340,3 @@ WHERE s.SupplierHomePage = ;
 DROP TABLE IF EXISTS Order1 CASCADE;
 CREATE TABLE Order1(
  ID_Order SERIAL,
- ID_Shipper INTEGER,
- EmployeeID INTEGER,
- ID_Product INTEGER,
- ID_Company INTEGER,
- OrderDate VARCHAR(255),
- RequiredDate VARCHAR(255),
- ShippedDate VARCHAR(255),
- OrderFreight REAL,
- OrderShipName VARCHAR(255),
- OrderQuantity INTEGER,
- OrderDiscount REAL,
- UnitsOnOrderOfProduct VARCHAR(255),
- ID_Address INTEGER,
- PRIMARY KEY (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company),
- FOREIGN KEY (ID_Shipper) REFERENCES Shipper(ID_Shipper),
- FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID),
- FOREIGN KEY (ID_Product) REFERENCES Product(ID_Product),
- FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
-);
-
-INSERT INTO Order1 (OrderDate, RequiredDate, ShippedDate, OrderFreight, OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct)
-SELECT OrderDate, RequiredDate, ShippedDate, OrderFreight, OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct
-FROM ProductsOrdered;
-
---QUERY PER ELIMINAR TOTES LES TAULES D'IMPORTACIÓ
-DROP TABLE IF EXISTS CustomersOrders;
-DROP TABLE IF EXISTS EmployeesSales;
-DROP TABLE IF EXISTS ProductsOrdered;
