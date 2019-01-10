@@ -326,7 +326,7 @@ CREATE TABLE Phone(
  FOREIGN KEY (ID_Customer) REFERENCES Company(ID_Company)
 );
 INSERT INTO Phone (Numero, Numero2, ID_Customer)
-SELECT DISTINCT Phone AS Numero, Phone2 AS Numero2, c.CompanyName AS ID_Customer
+SELECT DISTINCT Phone AS Numero, Phone2 AS Numero2, c.ID_Company AS ID_Customer
 FROM Company AS c, CustomersOrders AS co
 WHERE c.CompanyName = co.CompanyName;
 
@@ -344,5 +344,26 @@ WHERE sh.ShipperCompanyName = po.shippercompanyname;
 SELECT * FROM Phone;
 
 DROP TABLE IF EXISTS Order1 CASCADE;
-CREATE TABLE Order1(
- ID_Order SERIAL,
+CREATE TABLE Order1
+(
+ ID_Order   SERIAL,
+ ID_Shipper INTEGER,
+ EmployeeID INTEGER,
+ ID_Product INTEGER,
+ ID_Company INTEGER,
+ OrderDate  VARCHAR(255),
+ RequiredDate VARCHAR(255),
+ ShippedDate VARCHAR(255),
+ OrderFreight REAL,
+ OrderShipName VARCHAR(255),
+ OrderQuantity INTEGER,
+ OrderDiscount REAL,
+ UnitsOnOrderOfProduct VARCHAR(255),
+ ID_Address INTEGER,
+ PRIMARY KEY (ID_Order),
+ FOREIGN KEY (ID_Shipper) REFERENCES Shipper(ID_Shipper),
+ FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID),
+ FOREIGN KEY (ID_Product) REFERENCES Product(ID_Product),
+ FOREIGN KEY (ID_Company) REFERENCES Company(ID_Company),
+ FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
+);
