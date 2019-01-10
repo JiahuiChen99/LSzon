@@ -255,12 +255,12 @@ CREATE TABLE Employee(
  ReportsTo INTEGER,
  PRIMARY KEY (EmployeeID),
  FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address),
- FOREIGN KEY (ReportsTo) REFERENCES Employee(EmployeeID),
+ FOREIGN KEY (ReportsTo) REFERENCES Employee(EmployeeID)
 );
 INSERT INTO Employee (Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ID_Address, ReportsTo)
 SELECT DISTINCT es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, a.ID_Address, ReportsTo
-FROM EmployeesSales AS es, Territory AS t, Address AS a, City AS c
-
+FROM EmployeesSales AS es, Address AS a, City AS c
+WHERE a.ID_City = c.ID_City AND c.City = es.City;
 --WHERE es.TerritoryID = t.TerritoryID; --AND a.ID_City = c.ID_City AND c.City = es.City;
 
 SELECT * FROM Employee;
@@ -285,12 +285,12 @@ SELECT DISTINCT CompanyName, split_part(ContactName,' ',1) AS ContactName, split
 FROM CustomersOrders AS co, Address AS a
 WHERE co.Address = a.Address;
 
-INSERT INTO Company (CompanyName, ContactName, ContactSurname, ContactTitle, ID_Address)
-SELECT DISTINCT po.SupplierCompanyName, split_part(SupplierContactName,' ',1) AS ContactName, split_part(SupplierContactName,' ',2) AS ContactSurname, ContactTitle, ID_Address
+INSERT INTO Company (CompanyName, ContactName, ContactSurname, ID_Address)
+SELECT DISTINCT po.SupplierCompanyName, split_part(SupplierContactName,' ',1) AS ContactName, split_part(SupplierContactName,' ',2) AS ContactSurname, ID_Address
 FROM ProductsOrdered AS po, Address AS a
 WHERE po.OrderShipAddress = a.Address;
 
-SELECT DISTINCT CompanyName FROM Company;
+SELECT DISTINCT * FROM Company;
 SELECT DISTINCT SupplierContactName FROM ProductsOrdered;
 
 SELECT CompanyName, split_part(ContactName,' ',1) AS ContactName, split_part(ContactName,' ',2) AS ContactSurname, ContactTitle, ID_Address
@@ -333,9 +333,15 @@ WHERE c.CompanyName = co.CompanyName;
 INSERT INTO Phone (Numero, Numero2, ID_Supplier)
 SELECT DISTINCT SupplierPhone AS Numero, SupplierPhone2 AS Numero2, s.ID_Supplier AS ID_Supplier
 FROM Supplier AS s, ProductsOrdered AS po
-WHERE s.SupplierHomePage = ;
+WHERE s.SupplierHomePage = po.SupplierHomePage;
 
- SELECT * FROM Phone;
+INSERT INTO Phone (Numero, Numero2, ID_Shipper)
+SELECT DISTINCT SupplierPhone AS Numero, SupplierPhone2 AS Numero2, sh.ID_Shipper AS ID_Shipper
+FROM Shipper AS sh, ProductsOrdered AS po
+WHERE sh.ShipperCompanyName = po.shippercompanyname;
+
+
+SELECT * FROM Phone;
 
 DROP TABLE IF EXISTS Order1 CASCADE;
 CREATE TABLE Order1(
