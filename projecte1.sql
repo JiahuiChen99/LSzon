@@ -367,3 +367,18 @@ CREATE TABLE Order1
  FOREIGN KEY (ID_Company) REFERENCES Company(ID_Company),
  FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
 );
+
+INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
+SELECT o.ID_Order, sh.ID_Shipper, e.EmployeeID, p.ID_Product, comp.ID_Company,co.OrderDate, co.RequiredDate, co.ShippedDate, co.OrderFreight, co.OrderShipName, po.OrderQuantity, po.OrderDiscount, po.UnitsOnOrderOfProduct, a.ID_Address
+FROM CustomersOrders AS co, ProductsOrdered AS po, EmployeesSales AS es, Address AS a, Order1 AS o, Shipper as sh, Employee AS e, Product AS p, Company AS comp
+WHERE a.Address = po.OrderShipAddress;
+
+
+INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity)
+SELECT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, comp.ID_Company, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity
+FROM Shipper AS sh, Employee AS emp, Product AS p, Company AS comp, ProductsOrdered AS po, Address AS a
+WHERE a.Address = po.OrderShipAddress ;
+
+
+
+SELECT * FROM Order1;
