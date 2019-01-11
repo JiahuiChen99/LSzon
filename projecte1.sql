@@ -202,10 +202,10 @@ CREATE TABLE Region(
 INSERT INTO Region ( RegionDescription, Region, TerritoryID)
 SELECT DISTINCT e.RegionDescription, e.Region, t.TerritoryID
 FROM EmployeesSales AS e, Territory AS t
-WHERE t.TerritoryDescription = e.TerritoryDescription;
+WHERE t.TerritoryDescription = e.TerritoryDescription AND e.Region IS NOT NULL;
 
 SELECT * FROM Region;
- SELECT DISTINCT RegionDescription FROM EmployeesSales;
+SELECT DISTINCT RegionDescription FROM EmployeesSales;
 
 DROP TABLE IF EXISTS City CASCADE;
 CREATE TABLE City(
@@ -265,13 +265,14 @@ CREATE TABLE Employee(
  Photo VARCHAR(255),
  Notes TEXT,
  ReportsTo INTEGER,
+ Address VARCHAR(255),
  PRIMARY KEY (EmployeeID),
  FOREIGN KEY (ReportsTo) REFERENCES Employee(EmployeeID)
 );
-INSERT INTO Employee (EmployeeID, Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ReportsTo)
-SELECT DISTINCT es.EmployeeID, es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, ReportsTo
-FROM EmployeesSales AS es;
---WHERE ;
+INSERT INTO Employee (EmployeeID, Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ReportsTo, Address)
+SELECT DISTINCT es.EmployeeID, es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, ReportsTo, a.AddressName
+FROM EmployeesSales AS es, Address AS a
+WHERE es.Address = a.AddressName;
 --WHERE es.TerritoryID = t.TerritoryID; --AND a.ID_City = c.ID_City AND c.City = es.City;
 
 SELECT * FROM Employee;
@@ -368,16 +369,16 @@ CREATE TABLE Order1
  OrderQuantity INTEGER,
  OrderDiscount REAL,
  UnitsOnOrderOfProduct VARCHAR(255),
- ID_Address INTEGER,
+ AddressName VARCHAR(255),
  PRIMARY KEY (ID_Order),
  FOREIGN KEY (ID_Shipper) REFERENCES Shipper(ID_Shipper),
  FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID),
- FOREIGN KEY (ID_Product) REFERENCES Product(ID_Product),
- FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
+ FOREIGN KEY (ID_Product) REFERENCES Product(ID_Product)
+
 );
 
-INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct)
-SELECT DISTINCT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity, po.OrderQuantity, po.UnitsOnOrderOfProduct
+INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, AddressName)
+SELECT DISTINCT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity, po.OrderQuantity, po.UnitsOnOrderOfProduct, a.AddressName
 FROM Shipper AS sh, Employee AS emp, Product AS p, ProductsOrdered AS po, Address AS a, EmployeesSales AS es
 WHERE  po.shippercompanyname = sh.ShipperCompanyName AND es.FirstName = emp.FirstName AND es.LastName = emp.LastName AND po.ProductName = p.ProductName AND po.OrderShipAddress = a.AddressName AND es.EmployeeID = emp.EmployeeID;
 --a.Address = po.OrderShipAddress AND
