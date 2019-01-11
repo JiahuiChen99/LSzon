@@ -104,9 +104,9 @@
 
 
  --QUERY PER IMPORTAR LES DADES A LES SEVES TAULES RESPECTIVES
- COPY CustomersOrders FROM 'C:\Users\Public\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
- COPY EmployeesSales FROM 'C:\Users\Public\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
- COPY ProductsOrdered FROM 'C:\Users\Public\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
+ COPY CustomersOrders FROM 'C:\Users\Public\BBDD\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
+ COPY EmployeesSales FROM 'C:\Users\Public\BBDD\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
+ COPY ProductsOrdered FROM 'C:\Users\Public\BBDD\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
 
  --QUERY PER ELIMINAR ELS ATRIBUTS REPETITS
  ALTER TABLE EmployeesSales
@@ -329,7 +329,12 @@ INSERT INTO Phone (Numero, Numero2, ID_Customer)
 SELECT DISTINCT Phone AS Numero, Phone2 AS Numero2, c.ID_Company AS ID_Customer
 FROM Company AS c, CustomersOrders AS co
 WHERE c.CompanyName = co.CompanyName;
---
+
+INSERT INTO Phone (Numero, Numero2, ID_Supplier)
+SELECT DISTINCT po.SupplierPhone, po.SupplierPhone2, c.ID_Company
+FROM Company AS c, ProductsOrdered AS po, Supplier AS s
+WHERE c.ID_Company = s.ID_Supplier;
+
 --INSERT INTO Phone (Numero, Numero2, ID_Supplier)
 --SELECT DISTINCT SupplierPhone AS Numero, SupplierPhone2 AS Numero2, s.ID_Supplier AS ID_Supplier
 --FROM Supplier AS s, ProductsOrdered AS po
@@ -341,9 +346,7 @@ FROM Shipper AS sh, ProductsOrdered AS po
 WHERE sh.ShipperCompanyName = po.shippercompanyname;
 
 
-SELECT * FROM Phone;
-
- SELECT * FROM ProductsOrdered;
+SELECT * FROM ProductsOrdered;
 
 DROP TABLE IF EXISTS Order1 CASCADE;
 CREATE TABLE Order1
@@ -369,6 +372,8 @@ CREATE TABLE Order1
  FOREIGN KEY (ID_Company) REFERENCES Company(ID_Company),
  FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
 );
+
+INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
 
 INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
 SELECT o.ID_Order, sh.ID_Shipper, e.EmployeeID, p.ID_Product, comp.ID_Company,co.OrderDate, co.RequiredDate, co.ShippedDate, co.OrderFreight, co.OrderShipName, po.OrderQuantity, po.OrderDiscount, po.UnitsOnOrderOfProduct, a.ID_Address
