@@ -242,14 +242,16 @@ WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region;
  INSERT INTO Address (AddressName, PostalCode, ID_Country, ID_Region, ID_City)
  SELECT DISTINCT es.Address, es.PostalCode, c.ID_Country, r.RegionID, cy.ID_City
  FROM EmployeesSales AS es, Country AS c, Region AS r, City AS cy
- WHERE NOT EXISTS(SELECT DISTINCT co.Address, co.PostalCode, c.ID_Country, r.RegionID, cy.ID_City
-                   FROM CustomersOrders AS co, Country AS c, Region AS r, City AS cy
-                   WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region) AND es.City = cy.City AND c.Country = es.Country AND r.Region = es.Region AND r.RegionDescription = es.RegionDescription;
+ WHERE es.City = cy.City AND c.Country = es.Country AND r.RegionDescription = es.RegionDescription;
 
-SELECT * FROM Address;
+
+ --NOT EXISTS(SELECT DISTINCT co.Address, co.PostalCode, c.ID_Country, r.RegionID, cy.ID_City FROM CustomersOrders AS co, Country AS c, Region AS r, City AS cy WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region);
+ SELECT * FROM Address;
+ SELECT * FROM EmployeesSales;
 
 DROP TABLE IF EXISTS Employee CASCADE;
 CREATE TABLE Employee(
+ ID_SERIAL SERIAL,
  EmployeeID INTEGER,
  Title VARCHAR(255),
  TitleOfCourtesy VARCHAR(255),
@@ -262,21 +264,21 @@ CREATE TABLE Employee(
  Extension VARCHAR(255),
  Photo VARCHAR(255),
  Notes TEXT,
- ID_Address INTEGER,
  ReportsTo INTEGER,
  PRIMARY KEY (EmployeeID),
- FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address),
  FOREIGN KEY (ReportsTo) REFERENCES Employee(EmployeeID)
 );
-INSERT INTO Employee (EmployeeID, Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ID_Address, ReportsTo)
-SELECT DISTINCT es.EmployeeID, es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, a.ID_Address, ReportsTo
-FROM EmployeesSales AS es, Address AS a, City AS c
-WHERE a.ID_City = c.ID_City AND es.Address = a.AddressName;
+INSERT INTO Employee (EmployeeID, Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ReportsTo)
+SELECT DISTINCT es.EmployeeID, es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, ReportsTo
+FROM EmployeesSales AS es;
+--WHERE ;
 --WHERE es.TerritoryID = t.TerritoryID; --AND a.ID_City = c.ID_City AND c.City = es.City;
 
 SELECT * FROM Employee;
 SELECT Address FROM EmployeesSales;
+ SELECT * FROM Address;
 SELECT Address FROM  CustomersOrders;
+ SELECT ID_City FROM City;
 
 
 
@@ -380,19 +382,21 @@ FROM Shipper AS sh, Employee AS emp, Product AS p, ProductsOrdered AS po, Addres
 WHERE  po.shippercompanyname = sh.ShipperCompanyName AND es.FirstName = emp.FirstName AND es.LastName = emp.LastName AND po.ProductName = p.ProductName AND po.OrderShipAddress = a.AddressName AND es.EmployeeID = emp.EmployeeID;
 --a.Address = po.OrderShipAddress AND
 SELECT * FROM Product;
- SELECT * FROM Order1;
+SELECT * FROM Shipper;
+SELECT * FROM Order1;
 SELECT HomePhone FROM Employee;
 SELECT SupplierPhone, SupplierPhone2 FROM ProductsOrdered;
 SELECT * FROM EmployeesSales;
- SELECT * FROM Employee;
- select * FROM Company;
+SELECT * FROM Employee;
+select * FROM Company;
 --INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
 --SELECT o.ID_Order, sh.ID_Shipper, e.EmployeeID, p.ID_Product, comp.ID_Company,co.OrderDate, co.RequiredDate, co.ShippedDate, co.OrderFreight, co.OrderShipName, po.OrderQuantity, po.OrderDiscount, po.UnitsOnOrderOfProduct, a.ID_Address
 --FROM CustomersOrders AS co, ProductsOrdered AS po, EmployeesSales AS es, Address AS a, Order1 AS o, Shipper as sh, Employee AS e, Product AS p, Company AS comp
 --WHERE a.Address = po.OrderShipAddress;
 SELECT * FROM CustomersOrders;
 SELECT * FROM ProductsOrdered;
- SELECT * FROM EmployeesSales;
+SELECT * FROM EmployeesSales;
+
 
 --INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity)
 --SELECT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, comp.ID_Company, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity
