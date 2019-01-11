@@ -135,6 +135,7 @@ SELECT * FROM Category;
 DROP TABLE IF EXISTS Product CASCADE;
 CREATE TABLE Product(
  ID_Product SERIAL,
+ ProductName VARCHAR(255),
  UnitPriceOfProduct VARCHAR(255),
  UnitsInStockOfProduct INTEGER,
  ProductReorderLevel INTEGER,
@@ -143,8 +144,8 @@ CREATE TABLE Product(
  PRIMARY KEY (ID_Product),
  FOREIGN KEY (ID_Category) REFERENCES Category(ID_Category)
 );
-INSERT INTO Product (UnitPriceOfProduct, UnitsInStockOfProduct, ProductReorderLevel, DiscontinuedProduct)
-SELECT UnitPriceOfProduct, UnitsInStockOfProduct, ProductReorderLevel, DiscontinuedProduct
+INSERT INTO Product (ProductName, UnitPriceOfProduct, UnitsInStockOfProduct, ProductReorderLevel, DiscontinuedProduct)
+SELECT DISTINCT ProductName, UnitPriceOfProduct, UnitsInStockOfProduct, ProductReorderLevel, DiscontinuedProduct
 FROM ProductsOrdered;
 
 
@@ -373,18 +374,23 @@ CREATE TABLE Order1
  FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
 );
 
-INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
-
-INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
-SELECT o.ID_Order, sh.ID_Shipper, e.EmployeeID, p.ID_Product, comp.ID_Company,co.OrderDate, co.RequiredDate, co.ShippedDate, co.OrderFreight, co.OrderShipName, po.OrderQuantity, po.OrderDiscount, po.UnitsOnOrderOfProduct, a.ID_Address
-FROM CustomersOrders AS co, ProductsOrdered AS po, EmployeesSales AS es, Address AS a, Order1 AS o, Shipper as sh, Employee AS e, Product AS p, Company AS comp
-WHERE a.Address = po.OrderShipAddress;
-
-
-INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity)
-SELECT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, comp.ID_Company, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity
+INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct)
+SELECT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, comp.ID_Company, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity, po.OrderQuantity, po.UnitsOnOrderOfProduct
 FROM Shipper AS sh, Employee AS emp, Product AS p, Company AS comp, ProductsOrdered AS po, Address AS a
-WHERE a.Address = po.OrderShipAddress ;
+WHERE  po.shippercompanyname = sh.ShipperCompanyName AND po.SupplierPhone = emp.HomePhone  AND po.ProductName = p.ProductName AND po.SupplierCompanyName = comp.CompanyName ;
+--a.Address = po.OrderShipAddress AND
+
+
+--INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
+--SELECT o.ID_Order, sh.ID_Shipper, e.EmployeeID, p.ID_Product, comp.ID_Company,co.OrderDate, co.RequiredDate, co.ShippedDate, co.OrderFreight, co.OrderShipName, po.OrderQuantity, po.OrderDiscount, po.UnitsOnOrderOfProduct, a.ID_Address
+--FROM CustomersOrders AS co, ProductsOrdered AS po, EmployeesSales AS es, Address AS a, Order1 AS o, Shipper as sh, Employee AS e, Product AS p, Company AS comp
+--WHERE a.Address = po.OrderShipAddress;
+
+
+--INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity)
+--SELECT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, comp.ID_Company, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity
+--FROM Shipper AS sh, Employee AS emp, Product AS p, Company AS comp, ProductsOrdered AS po, Address AS a
+--WHERE a.Address = po.OrderShipAddress ;
 
 
 
