@@ -376,10 +376,12 @@ CREATE TABLE Order1
 
 INSERT INTO Order1 (ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct)
 SELECT sh.ID_Shipper, emp.EmployeeID, p.ID_Product, comp.ID_Company, po.OrderDate, po.RequiredDate, po.ShippedDate, po.OrderFreight, po.OrderShipName, po.OrderQuantity, po.OrderQuantity, po.UnitsOnOrderOfProduct
-FROM Shipper AS sh, Employee AS emp, Product AS p, Company AS comp, ProductsOrdered AS po, Address AS a
-WHERE  po.shippercompanyname = sh.ShipperCompanyName AND po.SupplierPhone = emp.HomePhone  AND po.ProductName = p.ProductName AND po.SupplierCompanyName = comp.CompanyName ;
+FROM Shipper AS sh, Employee AS emp, Product AS p, Company AS comp, ProductsOrdered AS po, Address AS a, EmployeesSales AS es
+WHERE  po.shippercompanyname = sh.ShipperCompanyName AND es.FirstName = emp.FirstName AND po.ProductName = p.ProductName AND po.SupplierCompanyName = comp.CompanyName ;
 --a.Address = po.OrderShipAddress AND
 
+SELECT HomePhone FROM Employee;
+SELECT SupplierPhone, SupplierPhone2 FROM ProductsOrdered;
 
 --INSERT INTO Order1 (ID_Order, ID_Shipper, EmployeeID, ID_Product, ID_Company, OrderDate, RequiredDate, ShippedDate, OrderFreight,  OrderShipName, OrderQuantity, OrderDiscount, UnitsOnOrderOfProduct, ID_Address)
 --SELECT o.ID_Order, sh.ID_Shipper, e.EmployeeID, p.ID_Product, comp.ID_Company,co.OrderDate, co.RequiredDate, co.ShippedDate, co.OrderFreight, co.OrderShipName, po.OrderQuantity, po.OrderDiscount, po.UnitsOnOrderOfProduct, a.ID_Address
