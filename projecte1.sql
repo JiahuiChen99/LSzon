@@ -329,11 +329,11 @@ INSERT INTO Phone (Numero, Numero2, ID_Customer)
 SELECT DISTINCT Phone AS Numero, Phone2 AS Numero2, c.ID_Company AS ID_Customer
 FROM Company AS c, CustomersOrders AS co
 WHERE c.CompanyName = co.CompanyName;
-
-INSERT INTO Phone (Numero, Numero2, ID_Supplier)
-SELECT DISTINCT SupplierPhone AS Numero, SupplierPhone2 AS Numero2, s.ID_Supplier AS ID_Supplier
-FROM Supplier AS s, ProductsOrdered AS po
-WHERE s.SupplierHomePage = po.SupplierHomePage;
+--
+--INSERT INTO Phone (Numero, Numero2, ID_Supplier)
+--SELECT DISTINCT SupplierPhone AS Numero, SupplierPhone2 AS Numero2, s.ID_Supplier AS ID_Supplier
+--FROM Supplier AS s, ProductsOrdered AS po
+--WHERE s.SupplierHomePage = po.SupplierHomePage;
 
 INSERT INTO Phone (Numero, Numero2, ID_Shipper)
 SELECT DISTINCT SupplierPhone AS Numero, SupplierPhone2 AS Numero2, sh.ID_Shipper AS ID_Shipper
