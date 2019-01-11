@@ -104,9 +104,9 @@
 
 
  --QUERY PER IMPORTAR LES DADES A LES SEVES TAULES RESPECTIVES
- COPY CustomersOrders FROM 'C:\Users\Public\BBDD\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
- COPY EmployeesSales FROM 'C:\Users\Public\BBDD\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
- COPY ProductsOrdered FROM 'C:\Users\Public\BBDD\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
+ COPY CustomersOrders FROM 'C:\Users\Public\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
+ COPY EmployeesSales FROM 'C:\Users\Public\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
+ COPY ProductsOrdered FROM 'C:\Users\Public\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
 
  --QUERY PER ELIMINAR ELS ATRIBUTS REPETITS
  ALTER TABLE EmployeesSales
@@ -181,8 +181,8 @@ CREATE TABLE Territory(
  PRIMARY KEY (TerritoryID),
  FOREIGN KEY (ID_Country) REFERENCES Country(ID_Country)
 );
-INSERT INTO Territory (TerritoryID, TerritoryDescription, ID_Country)
-SELECT DISTINCT e.TerritoryID, TerritoryDescription, c.ID_Country
+INSERT INTO Territory (TerritoryDescription, ID_Country)
+SELECT DISTINCT TerritoryDescription, c.ID_Country
 FROM EmployeesSales AS e, Country AS c
 WHERE e.Country = c.Country;
 
@@ -201,7 +201,10 @@ CREATE TABLE Region(
 INSERT INTO Region ( RegionDescription, Region, TerritoryID)
 SELECT DISTINCT e.RegionDescription, e.Region, t.TerritoryID
 FROM EmployeesSales AS e, Territory AS t
-WHERE t.TerritoryDescription = e.TerritoryDescription AND region IS NOT NULL ;
+WHERE t.TerritoryDescription = e.TerritoryDescription;
+
+SELECT * FROM Region;
+ SELECT DISTINCT RegionDescription FROM EmployeesSales;
 
 DROP TABLE IF EXISTS City CASCADE;
 CREATE TABLE City(
@@ -276,22 +279,19 @@ CREATE TABLE Company(
  ContactName VARCHAR(255),
  ContactSurname VARCHAR(255),
  ContactTitle VARCHAR(255),
- ID_Address INTEGER,
- PRIMARY KEY(ID_Company),
- FOREIGN KEY (ID_Address) REFERENCES Address(ID_Address)
+ PRIMARY KEY(ID_Company)
 );
-INSERT INTO Company (CompanyName, ContactName, ContactSurname, ContactTitle, ID_Address)
-SELECT DISTINCT CompanyName, split_part(ContactName,' ',1) AS ContactName, split_part(ContactName,' ',2) AS ContactSurname, ContactTitle, ID_Address
-FROM CustomersOrders AS co, Address AS a
-WHERE co.Address = a.Address;
+INSERT INTO Company (CompanyName, ContactName, ContactSurname, ContactTitle)
+SELECT DISTINCT CompanyName, split_part(ContactName,' ',1) AS ContactName, split_part(ContactName,' ',2) AS ContactSurname, ContactTitle
+FROM CustomersOrders AS co;
 
-INSERT INTO Company (CompanyName, ContactName, ContactSurname, ID_Address)
-SELECT DISTINCT po.SupplierCompanyName, split_part(SupplierContactName,' ',1) AS ContactName, split_part(SupplierContactName,' ',2) AS ContactSurname, ID_Address
-FROM ProductsOrdered AS po, Address AS a
-WHERE po.OrderShipAddress = a.Address;
+INSERT INTO Company (CompanyName, ContactName, ContactSurname)
+SELECT DISTINCT po.SupplierCompanyName, split_part(SupplierContactName,' ',1) AS ContactName, split_part(SupplierContactName,' ',2) AS ContactSurname
+FROM ProductsOrdered AS po;
+    --po.OrderShipAddress = a.Address;
 
 SELECT DISTINCT * FROM Company;
-SELECT DISTINCT SupplierContactName FROM ProductsOrdered;
+SELECT DISTINCT SupplierContactName, SupplierCompanyName FROM ProductsOrdered;
 
 SELECT CompanyName, split_part(ContactName,' ',1) AS ContactName, split_part(ContactName,' ',2) AS ContactSurname, ContactTitle, ID_Address
 FROM CustomersOrders AS co, Address AS a;
@@ -342,6 +342,8 @@ WHERE sh.ShipperCompanyName = po.shippercompanyname;
 
 
 SELECT * FROM Phone;
+
+ SELECT * FROM ProductsOrdered;
 
 DROP TABLE IF EXISTS Order1 CASCADE;
 CREATE TABLE Order1
