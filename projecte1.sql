@@ -162,7 +162,7 @@ SELECT DISTINCT ShipperCompanyName
 FROM ProductsOrdered;
 
 SELECT * FROM Shipper;
-
+SELECT DISTINCT Country FROM EmployeesSales;
 
 DROP TABLE IF EXISTS Country CASCADE;
 CREATE TABLE Country(
@@ -181,6 +181,8 @@ INSERT INTO Country (Country)
  UNION
     (SELECT DISTINCT SupplierCountry FROM ProductsOrdered);
 
+ SELECT * FROM Country;
+
 DROP TABLE IF EXISTS Region CASCADE;
 CREATE TABLE Region(
  RegionID SERIAL,
@@ -189,23 +191,25 @@ CREATE TABLE Region(
  PRIMARY KEY(RegionID),
  FOREIGN KEY (ID_Country) REFERENCES Country (ID_Country)
 );
-
+ select * from Region;
+ select * from Country;
+SELECT * FROM EmployeesSales;
 INSERT INTO Region ( Region, ID_Country)
     (SELECT DISTINCT e.Region, c.ID_Country
 FROM EmployeesSales AS e, Country AS c
-WHERE c.Country = e.Country AND e.Region IS NOT NULL)
+WHERE c.Country = e.Country)
  UNION
     (SELECT DISTINCT CO.OrderShipRegion, ID_Country
     FROM CustomersOrders AS CO, Country AS c
-    WHERE c.Country = CO.OrderShipCountry AND CO.OrderShipRegion IS NOT NULL)
+    WHERE c.Country = CO.OrderShipCountry)
  UNION
     (SELECT DISTINCT CO.region, ID_Country
     FROM CustomersOrders AS CO, Country AS c
-    WHERE c.Country = CO.Country AND CO.Region IS NOT NULL)
+    WHERE c.Country = CO.Country)
  UNION
     (SELECT DISTINCT p.SupplierRegion, ID_Country
     FROM ProductsOrdered AS p, Country AS c
-    WHERE p.SupplierCountry = c.Country AND p.SupplierRegion IS NOT NULL);
+    WHERE p.SupplierCountry = c.Country);
 
  SELECT * FROM Country;
  SELECT * FROM Region;
@@ -220,10 +224,11 @@ SELECT DISTINCT region FROM EmployeesSales;
  );
 
  INSERT INTO RegionDescription(RegionID, RegionDescription)
-     (SELECT DISTINCT r.RegionID, e.RegionDescription FROM Region AS r, EmployeesSales AS e WHERE r.Region = e.Region AND e.Region IS NOT NULL);
+     (SELECT DISTINCT r.RegionID, e.RegionDescription FROM Region AS r, EmployeesSales AS e WHERE r.Region = e.Region);
 
  SELECT * FROM Region WHERE RegionID = 23;
  SELECT * FROM RegionDescription;
+
  SELECT DISTINCT * FROM EmployeesSales WHERE Region LIKE '%WA%';
 
 DROP TABLE IF EXISTS Territory CASCADE;
@@ -237,11 +242,13 @@ CREATE TABLE Territory(
 INSERT INTO Territory (TerritoryDescription, RegionID)
 SELECT DISTINCT TerritoryDescription, r.RegionID
 FROM EmployeesSales AS e, Region AS r
-WHERE r.Region = e.Region;
+WHERE r.Region = e.Region OR e.Region IS NULL;
 
 SELECT * FROM Country;
 SELECT * FROM Territory;
+ SELECT * FROM EmployeesSales, Region WHERE EmployeesSales.Region = Region.Region;
 
+ SELECT * FROM EmployeesSales;
 SELECT * FROM Region;
 
 DROP TABLE IF EXISTS City CASCADE;
@@ -263,14 +270,20 @@ INSERT INTO City (City, RegionID)
  UNION
     (SELECT DISTINCT CO.City, r.RegionID
     FROM CustomersOrders AS CO, Region AS r
-    WHERE r.Region = CO.Region AND CO.City IS NOT NULL)
+    WHERE r.Region = CO.Region)
  UNION
     (SELECT DISTINCT p.SupplierCity, r.RegionID
     FROM ProductsOrdered AS p, Region AS r
-    WHERE p.SupplierRegion = r.Region AND p.SupplierCity IS NOT NULL);
+    WHERE p.SupplierRegion = r.Region AND p.SupplierCity IS NOT NULL)
+  UNION
+    (SELECT DISTINCT e.City, r.RegionID
+     FROM EmployeesSales AS e, Region AS r
+    WHERE e.Region = r.Region OR e.Region IS NULL);
 
-
-SELECT * FROM City;
+SELECT * FROM EmployeesSales WHERE City LIKE 'Redmond';
+SELECT DISTINCT city FROM City;
+ SELECT DISTINCT City, Region FROM EmployeesSales;
+ SELECT * FROM City;
 
 DROP TABLE IF EXISTS Address CASCADE;
 CREATE TABLE Address(
@@ -288,17 +301,21 @@ CREATE TABLE Address(
 INSERT INTO Address (AddressName, PostalCode, ID_Country, ID_Region, ID_City)
 SELECT DISTINCT co.Address, co.PostalCode, c.ID_Country, r.RegionID, cy.ID_City
 FROM CustomersOrders AS co, Country AS c, Region AS r, City AS cy
-WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region;
+WHERE cy.City = co.City AND c.Country = co.Country AND (r.Region = co.Region );
 
  INSERT INTO Address (AddressName, PostalCode, ID_Country, ID_Region, ID_City)
  SELECT DISTINCT es.Address, es.PostalCode, c.ID_Country, r.RegionID, cy.ID_City
  FROM EmployeesSales AS es, Country AS c, Region AS r, City AS cy
- WHERE es.City = cy.City AND c.Country = es.Country AND r.Region = es.RegionDescription;
+ WHERE es.City = cy.City AND c.Country = es.Country AND (r.Region = es.Region);
 
+ SELECT DISTINCT es.*
+ FROM EmployeesSales AS es, City AS cy, Country AS c, Region AS r
+ WHERE es.City = cy.City AND c.Country = es.Country AND r.Region = es.Region;
 
  --NOT EXISTS(SELECT DISTINCT co.Address, co.PostalCode, c.ID_Country, r.RegionID, cy.ID_City FROM CustomersOrders AS co, Country AS c, Region AS r, City AS cy WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region);
- SELECT * FROM Address;
+ SELECT * FROM Address WHERE AddressName LIKE '%14%';
  SELECT * FROM EmployeesSales;
+ SELECT * FROM Region;
 
 DROP TABLE IF EXISTS Employee CASCADE;
 CREATE TABLE Employee(
@@ -323,11 +340,11 @@ CREATE TABLE Employee(
 INSERT INTO Employee (EmployeeID, Title, TitleOfCourtesy, HireDate, PhotoPath, FirstName, LastName, BirthDate, HomePhone, Extension, Photo, Notes, ReportsTo, Address)
 SELECT DISTINCT es.EmployeeID, es.Title, es.TitleOfCourtesy, es.HireDate, es.PhotoPath, es.FirstName, es.LastName, es.BirthDate, es.HomePhone, es.Extension, es.Photo, es.Notes, ReportsTo, a.AddressName
 FROM EmployeesSales AS es, Address AS a
-WHERE es.Address = a.AddressName;
+WHERE es.address = a.AddressName;
 --WHERE es.TerritoryID = t.TerritoryID; --AND a.ID_City = c.ID_City AND c.City = es.City;
 
 SELECT * FROM Employee;
-SELECT Address FROM EmployeesSales;
+SELECT * FROM EmployeesSales;
  SELECT * FROM Address;
 SELECT Address FROM  CustomersOrders;
  SELECT ID_City FROM City;
@@ -456,4 +473,4 @@ SELECT * FROM EmployeesSales;
 --WHERE a.Address = po.OrderShipAddress ;
 
 
-
+SELECT e.FirstName AS "FirstName", e.LastName AS "LastName", COUNT(o.ID_Order) AS "Times has Discounted", SUM()
