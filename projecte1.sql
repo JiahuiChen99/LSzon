@@ -104,9 +104,9 @@
 
 
  --QUERY PER IMPORTAR LES DADES A LES SEVES TAULES RESPECTIVES
- COPY CustomersOrders FROM 'C:\Users\Public\BBDD\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
- COPY EmployeesSales FROM 'C:\Users\Public\BBDD\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
- COPY ProductsOrdered FROM 'C:\Users\Public\BBDD\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
+ COPY CustomersOrders FROM 'C:\Users\Public\CustomersOrders.csv' DELIMITER ',' CSV HEADER;
+ COPY EmployeesSales FROM 'C:\Users\Public\EmployeesSales.csv' DELIMITER ',' CSV HEADER;
+ COPY ProductsOrdered FROM 'C:\Users\Public\ProductsOrdered.csv' DELIMITER ',' CSV HEADER;
 
  --QUERY PER ELIMINAR ELS ATRIBUTS REPETITS
  ALTER TABLE EmployeesSales
@@ -171,41 +171,78 @@ CREATE TABLE Country(
  PRIMARY KEY (ID_Country)
 );
 INSERT INTO Country (Country)
-SELECT DISTINCT Country
-FROM EmployeesSales;
+    (SELECT DISTINCT Country
+      FROM EmployeesSales)
+      UNION
+    (SELECT DISTINCT OrderShipCountry
+    FROM EmployeesSales)
+ UNION
+    (SELECT DISTINCT Country FROM CustomersOrders)
+ UNION
+    (SELECT DISTINCT SupplierCountry FROM ProductsOrdered);
+
+DROP TABLE IF EXISTS Region CASCADE;
+CREATE TABLE Region(
+ RegionID SERIAL,
+ Region VARCHAR(255),
+ ID_Country INTEGER,
+ PRIMARY KEY(RegionID),
+ FOREIGN KEY (ID_Country) REFERENCES Country (ID_Country)
+);
+
+INSERT INTO Region ( Region, ID_Country)
+    (SELECT DISTINCT e.Region, c.ID_Country
+FROM EmployeesSales AS e, Country AS c
+WHERE c.Country = e.Country AND e.Region IS NOT NULL)
+ UNION
+    (SELECT DISTINCT CO.OrderShipRegion, ID_Country
+    FROM CustomersOrders AS CO, Country AS c
+    WHERE c.Country = CO.OrderShipCountry AND CO.OrderShipRegion IS NOT NULL)
+ UNION
+    (SELECT DISTINCT CO.region, ID_Country
+    FROM CustomersOrders AS CO, Country AS c
+    WHERE c.Country = CO.Country AND CO.Region IS NOT NULL)
+ UNION
+    (SELECT DISTINCT p.SupplierRegion, ID_Country
+    FROM ProductsOrdered AS p, Country AS c
+    WHERE p.SupplierCountry = c.Country AND p.SupplierRegion IS NOT NULL);
+
+ SELECT * FROM Country;
+ SELECT * FROM Region;
+
+SELECT DISTINCT region FROM EmployeesSales;
+
+ DROP TABLE IF EXISTS RegionDescription CASCADE;
+ CREATE TABLE RegionDescription(
+  RegionID INTEGER,
+  RegionDescription VARCHAR(255),
+  FOREIGN KEY (RegionID) REFERENCES Region(RegionID)
+ );
+
+ INSERT INTO RegionDescription(RegionID, RegionDescription)
+     (SELECT DISTINCT r.RegionID, e.RegionDescription FROM Region AS r, EmployeesSales AS e WHERE r.Region = e.Region AND e.Region IS NOT NULL);
+
+ SELECT * FROM Region WHERE RegionID = 23;
+ SELECT * FROM RegionDescription;
+ SELECT DISTINCT * FROM EmployeesSales WHERE Region LIKE '%WA%';
 
 DROP TABLE IF EXISTS Territory CASCADE;
 CREATE TABLE Territory(
  TerritoryID SERIAL,
  TerritoryDescription VARCHAR(255),
- ID_Country INTEGER,
+ RegionID INTEGER,
  PRIMARY KEY (TerritoryID),
- FOREIGN KEY (ID_Country) REFERENCES Country(ID_Country)
+ FOREIGN KEY (RegionID) REFERENCES Region (RegionID)
 );
-INSERT INTO Territory (TerritoryDescription, ID_Country)
-SELECT DISTINCT TerritoryDescription, c.ID_Country
-FROM EmployeesSales AS e, Country AS c
-WHERE e.Country = c.Country;
+INSERT INTO Territory (TerritoryDescription, RegionID)
+SELECT DISTINCT TerritoryDescription, r.RegionID
+FROM EmployeesSales AS e, Region AS r
+WHERE r.Region = e.Region;
 
 SELECT * FROM Country;
 SELECT * FROM Territory;
 
-DROP TABLE IF EXISTS Region CASCADE;
-CREATE TABLE Region(
- RegionID SERIAL,
- RegionDescription VARCHAR(255),
- Region VARCHAR(255),
- TerritoryID INTEGER,
- PRIMARY KEY(RegionID),
- FOREIGN KEY (TerritoryID) REFERENCES Territory (TerritoryID)
-);
-INSERT INTO Region ( RegionDescription, Region, TerritoryID)
-SELECT DISTINCT e.RegionDescription, e.Region, t.TerritoryID
-FROM EmployeesSales AS e, Territory AS t
-WHERE t.TerritoryDescription = e.TerritoryDescription AND e.Region IS NOT NULL;
-
 SELECT * FROM Region;
-SELECT DISTINCT RegionDescription FROM EmployeesSales;
 
 DROP TABLE IF EXISTS City CASCADE;
 CREATE TABLE City(
@@ -216,8 +253,22 @@ CREATE TABLE City(
  FOREIGN KEY (RegionID) REFERENCES Region(RegionID)
 );
 INSERT INTO City (City, RegionID)
-SELECT DISTINCT City, RegionID
-FROM EmployeesSales;
+    (SELECT DISTINCT e.OrderShipCity, r.RegionID
+    FROM EmployeesSales AS e, Region AS r
+    WHERE e.OrderShipRegion = r.Region)
+ UNION
+    (SELECT DISTINCT CO.OrderShipCity, r.RegionID
+    FROM CustomersOrders AS CO, Region AS r
+    WHERE r.Region = CO.OrderShipRegion AND CO.OrderShipCity IS NOT NULL)
+ UNION
+    (SELECT DISTINCT CO.City, r.RegionID
+    FROM CustomersOrders AS CO, Region AS r
+    WHERE r.Region = CO.Region AND CO.City IS NOT NULL)
+ UNION
+    (SELECT DISTINCT p.SupplierCity, r.RegionID
+    FROM ProductsOrdered AS p, Region AS r
+    WHERE p.SupplierRegion = r.Region AND p.SupplierCity IS NOT NULL);
+
 
 SELECT * FROM City;
 
@@ -242,7 +293,7 @@ WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region;
  INSERT INTO Address (AddressName, PostalCode, ID_Country, ID_Region, ID_City)
  SELECT DISTINCT es.Address, es.PostalCode, c.ID_Country, r.RegionID, cy.ID_City
  FROM EmployeesSales AS es, Country AS c, Region AS r, City AS cy
- WHERE es.City = cy.City AND c.Country = es.Country AND r.RegionDescription = es.RegionDescription;
+ WHERE es.City = cy.City AND c.Country = es.Country AND r.Region = es.RegionDescription;
 
 
  --NOT EXISTS(SELECT DISTINCT co.Address, co.PostalCode, c.ID_Country, r.RegionID, cy.ID_City FROM CustomersOrders AS co, Country AS c, Region AS r, City AS cy WHERE cy.City = co.City AND c.Country = co.Country AND r.Region = co.Region);
